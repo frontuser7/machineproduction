@@ -1,0 +1,19 @@
+.navTabContainer{
+    width: 100%;
+    overflow: auto;
+}
+
+.navTab{
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.navTab:hover{
+    border-bottom: 2px solid #44ce42;
+}
+
+.navTabActive{
+    border-bottom: 2px solid #44ce42;
+    font-weight: 500;
+}
