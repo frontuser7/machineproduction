@@ -9,18 +9,28 @@ function Tabs() {
   const tabsArr = [
     {
       id: 1,
+      name: "Plant Details",
+      path: "/dashboard/plantdetails",
+    },
+    {
+      id: 2,
+      name: "SKU Details",
+      path: "/dashboard/skudetails",
+    },
+    {
+      id: 3,
       name: "Machine Details",
       path: "/dashboard/machinedetails",
     },
     {
-      id: 2,
-      name: "Add Production Data",
-      path: "/dashboard/addproduction",
+      id: 4,
+      name: "Plant Setup",
+      path: "/dashboard/plantsetup",
     },
     {
-      id: 3,
-      name: "Production List",
-      path: "/dashboard/productionlist",
+      id: 5,
+      name: "Add Production Data",
+      path: "/dashboard/addproduction",
     },
   ];
   return (

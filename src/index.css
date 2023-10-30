@@ -22,7 +22,16 @@ h1, h2, h3, h4, h5, h6 {
   margin-bottom: 0 !important;
 }
 
-th, th, td{
+th, td{
   font-size: 12px !important;
+}
+
+.productiondate{
+  font-size: 13px !important;
+}
+
+
+.dropdowntext{
+  font-size: 13px !important;
 }
 

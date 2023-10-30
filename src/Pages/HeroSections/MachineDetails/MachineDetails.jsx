@@ -1,9 +1,17 @@
 import React, { useEffect, useState } from "react";
 import Table from "react-bootstrap/Table";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 function MachineDetails() {
   const BASE_URL = process.env.REACT_APP_BASE_URL;
+
+  // for notification
+  const notify = (notification, type) =>
+    toast(notification, { autoClose: 2000, theme: "colored", type: type });
+
+  const navigate = useNavigate();
 
   const [machineData, setMachineData] = useState([]);
 
@@ -11,15 +19,23 @@ function MachineDetails() {
   const getMachineDetails_url = BASE_URL + "api/getmachine/";
 
   const getMachineDetails = async () => {
+    let header = {
+      Authorization: `Token ${localStorage.getItem("token")}`,
+    };
+
     await axios
-      .get(getMachineDetails_url)
+      .get(getMachineDetails_url, { headers: header })
       .then((res) => {
         if (res.data.status) {
-          setMachineData(res.data?.machine);
+          setMachineData(res.data?.data);
         }
       })
       .catch((err) => {
         console.log(err);
+        if (err.response?.status === 401) {
+          notify("Unathorized user", "error");
+          navigate("/");
+        }
       });
   };
 
@@ -28,33 +44,40 @@ function MachineDetails() {
   }, []);
 
   return (
-    <Table className="mt-3" bordered responsive>
-      <thead className="table-secondary">
-        <tr>
-          <th>machineID</th>
-          <th>machine_name</th>
-          <th>location</th>
-          <th>name</th>
-          <th>plantID</th>
-          <th>sap_code</th>
-        </tr>
-      </thead>
-      <tbody>
-        {machineData &&
-          machineData.map((item) => {
-            return (
-              <tr key={item.machineID + item.production_Date}>
-                <td>{item.machineID}</td>
-                <td>{item.machine_name}</td>
-                <td>{item?.plant?.location}</td>
-                <td>{item?.plant?.name}</td>
-                <td>{item?.plant?.plantID}</td>
-                <td>{item.sap_code}</td>
-              </tr>
-            );
-          })}
-      </tbody>
-    </Table>
+    <>
+      <Table className="mt-3" bordered responsive>
+        <thead className="table-secondary">
+          <tr>
+            <th rowSpan={2}>Machine ID</th>
+            <th rowSpan={2}>Machine Name</th>
+            <th className="text-center" colSpan={3}>
+              Plant
+            </th>
+            <th rowSpan={2}>SAP Code</th>
+          </tr>
+          <tr>
+            <th>Plant ID</th>
+            <th>Name</th>
+            <th>Location</th>
+          </tr>
+        </thead>
+        <tbody>
+          {machineData &&
+            machineData.map((item) => {
+              return (
+                <tr key={item.machineID + item.production_Date}>
+                  <td>{item.machineID}</td>
+                  <td>{item.machine_name}</td>
+                  <td>{item?.plant?.plantID}</td>
+                  <td>{item?.plant?.name}</td>
+                  <td>{item?.plant?.location}</td>
+                  <td>{item.sap_code}</td>
+                </tr>
+              );
+            })}
+        </tbody>
+      </Table>
+    </>
   );
 }
 

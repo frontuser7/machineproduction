@@ -4,17 +4,24 @@ import Login from './Pages/Login/Login';
 import Dashboard from './Pages/Dashboard/Dashboard';
 import MachineDetails from './Pages/HeroSections/MachineDetails/MachineDetails';
 import ProductionData from './Pages/HeroSections/ProductionData/ProductionData';
-import ProductionList from './Pages/HeroSections/ProductionList/ProductionList';
+import PlantDetails from './Pages/HeroSections/PlantDetails/PlantDetails';
+import SKUDetails from './Pages/HeroSections/SKUDetails/SKUDetails';
+import PlantSetup from './Pages/HeroSections/PlantSetup/PlantSetup';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 function App() {
   return (
     <BrowserRouter>
+    <ToastContainer/>
       <Routes>
         <Route path='/' element={<Login/>}/>
         <Route path='/dashboard' element={<Dashboard/>}>
           <Route path='machinedetails' element={<MachineDetails/>}/>
           <Route path='addproduction' element={<ProductionData/>}/>
-          <Route path='productionlist' element={<ProductionList/>}/>
+          <Route path='plantdetails' element={<PlantDetails/>}/>
+          <Route path='skudetails' element={<SKUDetails/>}/>
+          <Route path='plantsetup' element={<PlantSetup/>}/>
         </Route>
       </Routes>
     </BrowserRouter>

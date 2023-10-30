@@ -7,10 +7,15 @@ import "./Login.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import Spinner from "react-bootstrap/Spinner";
+import { toast } from "react-toastify";
 
 function Login() {
   const BASE_URL = process.env.REACT_APP_BASE_URL;
   const navigate = useNavigate();
+
+  // for notification
+  const notify = (notification, type) =>
+    toast(notification, { autoClose: 2000, theme: "colored", type: type });
 
   const [loading, setLoading] = useState(false);
 
@@ -34,14 +39,18 @@ function Login() {
     await axios
       .post(login_url, data)
       .then((res) => {
+        localStorage.setItem("token", res?.data?.token);
         setLoading(false);
         if (res.data.status) {
-          navigate("/dashboard/machinedetails");
+          navigate("/dashboard/plantdetails");
         }
       })
       .catch((err) => {
         setLoading(false);
         console.log(err);
+        if (err.response.status === 400) {
+          notify("Incorrect Credentails", "error");
+        }
       });
   };
 
