@@ -9,6 +9,7 @@ import SKUDetails from './Pages/HeroSections/SKUDetails/SKUDetails';
 import PlantSetup from './Pages/HeroSections/PlantSetup/PlantSetup';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Graphs from './Pages/HeroSections/Graphs/Graphs';
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path='plantdetails' element={<PlantDetails/>}/>
           <Route path='skudetails' element={<SKUDetails/>}/>
           <Route path='plantsetup' element={<PlantSetup/>}/>
+          <Route path='graphs' element={<Graphs/>}/>
         </Route>
       </Routes>
     </BrowserRouter>

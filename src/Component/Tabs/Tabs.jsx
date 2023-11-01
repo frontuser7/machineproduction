@@ -32,6 +32,11 @@ function Tabs() {
       name: "Add Production Data",
       path: "/dashboard/addproduction",
     },
+    {
+      id: 6,
+      name: "Graphical Representation",
+      path: "/dashboard/graphs",
+    },
   ];
   return (
     <div className="my-3 d-flex align-items-center navTabContainer">
@@ -44,7 +49,9 @@ function Tabs() {
                 navigate(item.path);
               }}
               className={`navTab p-2 m-1 ${
-                location.pathname === item.path ? "navTabActive" : ""
+                location.pathname === item.path
+                  ? "navTabActive"
+                  : "navTabNotActive"
               }`}
             >
               {item.name}

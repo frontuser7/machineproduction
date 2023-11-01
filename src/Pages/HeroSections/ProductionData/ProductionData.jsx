@@ -8,7 +8,6 @@ import MultiSelect from "../../../Component/MultiSelect/MultiSelect";
 import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import moment from "moment";
 
 function ProductionData() {
   const BASE_URL = process.env.REACT_APP_BASE_URL;
@@ -37,6 +36,10 @@ function ProductionData() {
   const [skuData, setSkuData] = useState([]);
   const [machineData, setMachineData] = useState([]);
   const [selectedSKU, setSelectedSku] = useState([]);
+  const [filterDates, setFilterDates] = useState({
+    startDate: "",
+    endDate: "",
+  });
 
   const handleForm = (e) => {
     const { name, value } = e.target;
@@ -217,11 +220,30 @@ function ProductionData() {
 
   // handle Filter by date
 
-  const handleFilter = (date) => {
-    console.log(date);
+  // const handleFilter = (date) => {
+  //   console.log(date);
+  //   let filteredData = productionList.filter((item) => {
+  //     return item.production_Date === date;
+  //   });
+  //   if (filteredData.length) {
+  //     setProductionList(filteredData);
+  //   } else {
+  //     getProductionData();
+  //     notify("Data not available for this date", "error");
+  //   }
+  // };
+
+  const handleFilterByDates = () => {
+    const startDateObj = new Date(filterDates.startDate);
+    const endDateObj = new Date(filterDates.endDate);
+
     let filteredData = productionList.filter((item) => {
-      return item.production_Date === date;
+      return (
+        new Date(item.production_Date) >= startDateObj &&
+        new Date(item.production_Date) <= endDateObj
+      );
     });
+
     if (filteredData.length) {
       setProductionList(filteredData);
     } else {
@@ -245,7 +267,7 @@ function ProductionData() {
           <tr>
             <th>Machine Name</th>
             <th style={{ width: "200px" }}>SKU Name</th>
-            <th>Production Name</th>
+            <th>Production Date</th>
             <th>Production Kg</th>
             <th>Batch No</th>
             <th>Working</th>
@@ -371,19 +393,43 @@ function ProductionData() {
         </div>
       </div>
       <div className="my-3 ms-2">
-        <div className="my-2 ms-2 text-secondary">Filter By Date</div>
-        <div className="d-flex justify-content-start align-items-center gap-2">
+        <li className="my-2 ms-2 text-dark">Filter By Date</li>
+        <div className="d-flex justify-content-start align-items-end gap-2">
           <div>
+            <h6 className="text-secondary mb-2" style={{ fontSize: "13px" }}>
+              From Date
+            </h6>
             <input
               onChange={(e) => {
-                handleFilter(e.target.value);
+                setFilterDates((prev) => ({
+                  ...prev,
+                  startDate: e.target.value,
+                }));
               }}
+              value={filterDates.startDate}
               type="date"
               placeholder="YYYY-MM-DD"
               className="form-control productiondate"
             />
           </div>
-          <Mybutton
+          <div>
+            <h6 className="text-secondary mb-2" style={{ fontSize: "13px" }}>
+              To Date
+            </h6>
+            <input
+              onChange={(e) => {
+                setFilterDates((prev) => ({
+                  ...prev,
+                  endDate: e.target.value,
+                }));
+              }}
+              value={filterDates.endDate}
+              type="date"
+              placeholder="YYYY-MM-DD"
+              className="form-control productiondate"
+            />
+          </div>
+          {/* <Mybutton
             name={"Today"}
             handleClick={() => {
               handleFilter(moment(new Date()).format("YYYY-MM-DD"));
@@ -394,8 +440,18 @@ function ProductionData() {
               handleFilter(moment().subtract(1, "day").format("YYYY-MM-DD"));
             }}
             name={"Yesturday"}
+          /> */}
+          <Mybutton name={"Search"} handleClick={handleFilterByDates} />
+          <Mybutton
+            name={"Reset Filter"}
+            handleClick={() => {
+              getProductionData();
+              setFilterDates({
+                startDate: "",
+                endDate: "",
+              });
+            }}
           />
-          <Mybutton name={"All"} handleClick={getProductionData} />
         </div>
       </div>
       <Table className="mt-3" bordered>

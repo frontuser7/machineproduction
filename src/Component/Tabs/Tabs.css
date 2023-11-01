@@ -16,4 +16,9 @@
 .navTabActive{
     border-bottom: 2px solid #44ce42;
     font-weight: 500;
+    color: #313131;
+}
+
+.navTabNotActive{
+    color: #757575;
 }
