@@ -39,7 +39,7 @@ function Tabs() {
     },
   ];
   return (
-    <div className="my-3 d-flex align-items-center navTabContainer">
+    <div className="my-3 d-flex align-items-center navTabContainer hidescrollbar">
       {tabsArr &&
         tabsArr.map((item) => {
           return (

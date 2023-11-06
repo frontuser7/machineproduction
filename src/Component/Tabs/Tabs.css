@@ -20,5 +20,6 @@
 }
 
 .navTabNotActive{
-    color: #757575;
+    color: #a1a1a1;
+    font-weight: 300;
 }

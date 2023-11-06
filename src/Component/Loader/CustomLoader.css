@@ -1,0 +1,29 @@
+.loader {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: #fff;
+    border: 1px solid #44ce42;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+  }
+  .loader:before,
+  .loader:after {
+    content: "";
+    position: absolute;
+    border-radius: 50%;
+    inset: 0;
+    background: #0d6efd;
+    transform: rotate(0deg) translate(30px);
+    animation: rotate 1s ease infinite;
+  }
+  .loader:after {
+    animation-delay: 0.5s
+  }
+
+  @keyframes rotate {
+    100% {transform: rotate(360deg) translate(30px)}
+  }
+      

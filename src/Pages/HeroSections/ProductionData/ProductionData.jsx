@@ -3,8 +3,9 @@ import Dropdown from "react-bootstrap/Dropdown";
 import axios from "axios";
 import Table from "react-bootstrap/Table";
 import Form from "react-bootstrap/Form";
+import InputGroup from "react-bootstrap/InputGroup";
+import DropdownButton from "react-bootstrap/DropdownButton";
 import Mybutton from "../../../Component/Mybutton/Mybutton";
-import MultiSelect from "../../../Component/MultiSelect/MultiSelect";
 import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -23,27 +24,35 @@ function ProductionData() {
       id: null,
       name: "Select Machine",
     },
+    sku: {
+      id: null,
+      name: "Select SKU",
+    },
     productionDate: "",
     productionKg: "",
     batchNo: "",
-    working: false,
+    working: true,
     remark: "",
   });
   const [state, setState] = useState([]);
   const [productionList, setProductionList] = useState([]);
-  const [apiCall, setApiCall] = useState(false);
-  const [isEmpty, setIsEmpty] = useState(false);
   const [skuData, setSkuData] = useState([]);
   const [machineData, setMachineData] = useState([]);
-  const [selectedSKU, setSelectedSku] = useState([]);
   const [filterDates, setFilterDates] = useState({
     startDate: "",
     endDate: "",
   });
+  const [isDisable, setIsDisable] = useState(false);
 
   const handleForm = (e) => {
     const { name, value } = e.target;
     setForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  // Toggle disable based on working status
+  const handleDisable = (working) => {
+    setIsDisable(!working);
+    setForm((prev) => ({ ...prev, batchNo: "", productionKg: "" }));
   };
 
   // urls
@@ -100,8 +109,8 @@ function ProductionData() {
     let skuArr = [];
     for (let i = 0; i < filteredState.length; i++) {
       let newObj = {
-        label: filteredState[i]?.sku?.product_name,
-        value: filteredState[i]?.sku?.skuID,
+        name: filteredState[i]?.sku?.product_name,
+        id: filteredState[i]?.sku?.skuID,
       };
       skuArr.push(newObj);
     }
@@ -109,13 +118,19 @@ function ProductionData() {
   };
 
   // get production data
-  const getProductionData = async () => {
+  const getProductionData = async (startDate, endDate) => {
     let header = {
       Authorization: `Token ${localStorage.getItem("token")}`,
     };
 
     await axios
-      .get(getProductionData_url, { headers: header })
+      .get(getProductionData_url, {
+        headers: header,
+        params: {
+          start_date: startDate || "",
+          end_date: endDate || "",
+        },
+      })
       .then((res) => {
         if (res.data.status) {
           setProductionList(res.data.data);
@@ -131,22 +146,21 @@ function ProductionData() {
   };
 
   // getSelected SKU
-  const selectedSku = (data) => {
-    let idsArr = [];
-    for (let i = 0; i < data.length; i++) {
-      idsArr.push(data[i].value);
-    }
-    setSelectedSku(idsArr);
-  };
+  // const selectedSku = (data) => {
+  //   let idsArr = [];
+  //   for (let i = 0; i < data.length; i++) {
+  //     idsArr.push(data[i].value);
+  //   }
+  //   setSelectedSku(idsArr);
+  // };
 
   // post api
   const handleSubmit = async () => {
     if (
-      !form.batchNo.length ||
       !form.productionDate.length ||
-      !form.productionKg.length ||
-      !form.remark.length ||
-      !selectedSKU.length
+      !form.batchNo.length ||
+      !form.machine.id ||
+      !form.sku.id
     ) {
       return notify("All fields are mandatory", "info");
     }
@@ -161,8 +175,8 @@ function ProductionData() {
     data.append("machine", form.machine.id);
     data.append("remark", form.remark);
     data.append("batchNo", form.batchNo);
-    data.append("working", form.working);
-    data.append("skudata", JSON.stringify(selectedSKU));
+    data.append("working", form.working === true ? "yes" : "no");
+    data.append("skudata", JSON.stringify([form.sku.id]));
 
     await axios
       .post(postProductionData_url, data, { headers: header })
@@ -173,14 +187,18 @@ function ProductionData() {
               id: null,
               name: "Select Machine",
             },
+            sku: {
+              id: null,
+              name: "Select SKU",
+            },
             productionDate: "",
             productionKg: "",
             batchNo: "",
             working: false,
             remark: "",
           });
-          setIsEmpty(true);
-          setApiCall(true);
+          setSkuData([]);
+          getProductionData();
         }
       })
       .catch((err) => {
@@ -199,10 +217,9 @@ function ProductionData() {
         const flattenedItem = { ...item };
         if (item.skudata) {
           for (let i = 0; i < item.skudata.length; i++) {
-            flattenedItem[`skuID_${i + 1}`] = item.skudata[i].skuID;
-            flattenedItem[`product_name${i + 1}`] =
-              item.skudata[i].product_name;
-            flattenedItem[`weight${i + 1}`] = item.skudata[i].weight;
+            flattenedItem[`skuID`] = item.skudata[i].skuID;
+            flattenedItem[`product_name`] = item.skudata[i].product_name;
+            flattenedItem[`weight`] = item.skudata[i].weight;
           }
         }
         delete flattenedItem.skudata;
@@ -218,167 +235,292 @@ function ProductionData() {
     XLSX.writeFile(workbook, "DataSheet.xlsx");
   };
 
-  // handle Filter by date
-
-  // const handleFilter = (date) => {
-  //   console.log(date);
-  //   let filteredData = productionList.filter((item) => {
-  //     return item.production_Date === date;
-  //   });
-  //   if (filteredData.length) {
-  //     setProductionList(filteredData);
-  //   } else {
-  //     getProductionData();
-  //     notify("Data not available for this date", "error");
-  //   }
-  // };
-
-  const handleFilterByDates = () => {
-    const startDateObj = new Date(filterDates.startDate);
-    const endDateObj = new Date(filterDates.endDate);
-
-    let filteredData = productionList.filter((item) => {
-      return (
-        new Date(item.production_Date) >= startDateObj &&
-        new Date(item.production_Date) <= endDateObj
-      );
-    });
-
-    if (filteredData.length) {
-      setProductionList(filteredData);
-    } else {
-      getProductionData();
-      notify("Data not available for this date", "error");
-    }
-  };
-
   useEffect(() => {
     getData();
   }, []);
 
   useEffect(() => {
     getProductionData();
-  }, [apiCall]);
+  }, []);
 
   return (
     <>
-      <Table className="mt-3" bordered>
-        <thead className="table-secondary">
-          <tr>
-            <th>Machine Name</th>
-            <th style={{ width: "200px" }}>SKU Name</th>
-            <th>Production Date</th>
-            <th>Production Kg</th>
-            <th>Batch No</th>
-            <th>Working</th>
-            <th>Remark</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td>
-              <Dropdown>
-                <Dropdown.Toggle variant="white" className="dropdowntext">
-                  {form.machine.name}
-                </Dropdown.Toggle>
-
-                <Dropdown.Menu className="dropdowntext">
-                  {machineData.length &&
-                    machineData.map((machine) => {
-                      return (
-                        <Dropdown.Item
-                          key={machine?.machine?.machineID}
-                          onClick={() => {
-                            handleSelect(machine);
-                          }}
-                        >
-                          {machine?.machine?.machine_name}
-                        </Dropdown.Item>
-                      );
-                    })}
-                </Dropdown.Menu>
-              </Dropdown>
-            </td>
-            <td>
-              <MultiSelect
-                isEmpty={isEmpty}
-                placeholderName={"Select SKU"}
-                data={skuData}
-                selectedSKU={selectedSku}
-              />
-            </td>
-            <td>
-              <input
-                value={form.productionDate}
-                onChange={handleForm}
-                name="productionDate"
-                type="date"
-                placeholder="YYYY-MM-DD"
-                className="form-control productiondate"
-              />
-            </td>
-            <td>
-              <input
-                value={form.productionKg}
-                onChange={handleForm}
-                name="productionKg"
-                type="number"
-                className="form-control"
-              />
-            </td>
-            <td>
-              <input
-                value={form.batchNo}
-                onChange={handleForm}
-                name="batchNo"
-                type="text"
-                className="form-control"
-              />
-            </td>
-            <td>
-              <div className="d-flex align-items-center gap-2 fs-6">
-                <Form.Check
+      <div className="row">
+        <div className="col-6 col-lg-4 col-md-4 px-2 my-2">
+          <InputGroup>
+            <DropdownButton variant="outline-secondary" title="Select Machine">
+              {machineData.length &&
+                machineData.map((machine) => {
+                  return (
+                    <Dropdown.Item
+                      key={machine?.machine?.machineID}
+                      onClick={() => {
+                        handleSelect(machine);
+                        setForm((prev) => ({
+                          ...prev,
+                          sku: { name: "Select SKU", id: null },
+                        }));
+                      }}
+                    >
+                      {machine?.machine?.machine_name}
+                    </Dropdown.Item>
+                  );
+                })}
+            </DropdownButton>
+            <Form.Control
+              readOnly
+              aria-label="Text input with dropdown button"
+              value={form.machine.name}
+            />
+          </InputGroup>
+        </div>
+        <div className="col-6 col-lg-4 col-md-4 px-2 my-2">
+          <InputGroup>
+            <DropdownButton variant="outline-secondary" title="SKU Name">
+              {skuData.length &&
+                skuData.map((sku) => {
+                  return (
+                    <Dropdown.Item
+                      key={sku?.id}
+                      onClick={() => {
+                        setForm((prev) => ({ ...prev, sku: sku }));
+                      }}
+                    >
+                      {sku?.name}
+                    </Dropdown.Item>
+                  );
+                })}
+            </DropdownButton>
+            <Form.Control
+              readOnly
+              aria-label="Text input with dropdown button"
+              value={form.sku.name}
+            />
+          </InputGroup>
+        </div>
+        <div className="col-6 col-lg-4 col-md-4 px-2 my-2">
+          <div className="row">
+            <div className="col-6 px-1">
+              <InputGroup>
+                <InputGroup.Radio
+                  defaultChecked
                   onClick={() => {
                     setForm((prev) => ({ ...prev, working: true }));
+                    handleDisable(true);
                   }}
-                  inline
-                  label="Yes"
-                  name="group1"
-                  type={"radio"}
+                  name="workingStatus"
                 />
-                <Form.Check
-                  defaultChecked
-                  inline
-                  label="No"
-                  name="group1"
-                  type={"radio"}
+                <Form.Control readOnly placeholder="Working" />
+              </InputGroup>
+            </div>
+            <div className="col-6 px-1">
+              <InputGroup>
+                <InputGroup.Radio
                   onClick={() => {
                     setForm((prev) => ({ ...prev, working: false }));
+                    handleDisable(false);
                   }}
+                  name="workingStatus"
                 />
-              </div>
-            </td>
-            <td>
-              <input
-                value={form.remark}
-                onChange={handleForm}
-                name="remark"
-                type="text"
-                className="form-control"
-              />
-            </td>
-            <td>
-              <Mybutton
-                name={"Submit"}
-                backgroundColor={"#44ce42"}
-                color={"#fff"}
-                handleClick={handleSubmit}
-              />
-            </td>
-          </tr>
-        </tbody>
-      </Table>
+                <Form.Control readOnly placeholder="Not Working" />
+              </InputGroup>
+            </div>
+          </div>
+        </div>
+        {/* <div
+          className="col-6 col-lg-4 col-md-4 px-2"
+          style={{ fontSize: "12px" }}
+        >
+          <label className="label m-2">SKU Name</label>
+          <div>
+            <MultiSelect
+              isEmpty={isEmpty}
+              placeholderName={"Select SKU"}
+              data={skuData}
+              selectedSKU={selectedSku}
+            />
+          </div>
+        </div> */}
+        <div className="col-6 col-lg-4 col-md-4 px-2 my-2">
+          <div className="input-group">
+            <span className="input-group-text" id="basic-addon1">
+              Production date
+            </span>
+            <input
+              type="date"
+              value={form.productionDate}
+              onChange={handleForm}
+              name="productionDate"
+              placeholder="YYYY-MM-DD"
+              className="form-control"
+              aria-label="Username"
+              aria-describedby="basic-addon1"
+            />
+          </div>
+        </div>
+        <div className="col-6 col-lg-4 col-md-4 px-2 my-2">
+          <div className="input-group">
+            <span className="input-group-text" id="basic-addon1">
+              Production KG
+            </span>
+            <input
+              disabled={isDisable}
+              value={form.productionKg}
+              onChange={handleForm}
+              name="productionKg"
+              type="number"
+              placeholder="in kg"
+              className="form-control"
+              aria-label="Username"
+              aria-describedby="basic-addon1"
+            />
+          </div>
+        </div>
+        <div className="col-6 col-lg-4 col-md-4 px-2 my-2">
+          <div className="input-group">
+            <span className="input-group-text" id="basic-addon1">
+              Batch No
+            </span>
+            <input
+              value={form.batchNo}
+              onChange={handleForm}
+              name="batchNo"
+              type="text"
+              placeholder="Enter Batch No"
+              className="form-control"
+              aria-label="Username"
+              aria-describedby="basic-addon1"
+            />
+          </div>
+        </div>
+        <div className="col-6 col-lg-4 col-md-4 px-2 my-2">
+          <div className="input-group">
+            <span className="input-group-text" id="basic-addon1">
+              Remark
+            </span>
+            <input
+              value={form.remark}
+              onChange={handleForm}
+              name="remark"
+              type="text"
+              placeholder="Enter Remark"
+              className="form-control"
+              aria-label="Username"
+              aria-describedby="basic-addon1"
+            />
+          </div>
+        </div>
+        <div className="text-center p-2 mt-2">
+          <Mybutton
+            name={"Submit"}
+            backgroundColor={"#44ce42"}
+            color={"#fff"}
+            handleClick={handleSubmit}
+          />
+        </div>
+      </div>
+      {/* <div>
+        <Table className="mt-3" bordered responsive>
+          <thead className="table-secondary">
+            <tr>
+              <th>Machine Name</th>
+              <th style={{ width: "200px" }}>SKU Name</th>
+              <th>Production Date</th>
+              <th>Production Kg</th>
+              <th>Batch No</th>
+              <th>Working</th>
+              <th>Remark</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td></td>
+              <td>
+                <div style={{ width: "200px" }}>
+                  <MultiSelect
+                    isEmpty={isEmpty}
+                    placeholderName={"Select SKU"}
+                    data={skuData}
+                    selectedSKU={selectedSku}
+                  />
+                </div>
+              </td>
+              <td>
+                <input
+                  value={form.productionDate}
+                  onChange={handleForm}
+                  name="productionDate"
+                  type="date"
+                  placeholder="YYYY-MM-DD"
+                  className="form-control productiondate"
+                />
+              </td>
+              <td>
+                <input
+                  disabled={isDisable}
+                  value={form.productionKg}
+                  onChange={handleForm}
+                  name="productionKg"
+                  type="number"
+                  className="form-control"
+                />
+              </td>
+              <td>
+                <input
+                  value={form.batchNo}
+                  onChange={handleForm}
+                  name="batchNo"
+                  type="text"
+                  className="form-control"
+                />
+              </td>
+              <td>
+                <div className="d-flex align-items-center gap-2 fs-6">
+                  <Form.Check
+                    defaultChecked
+                    onClick={() => {
+                      setForm((prev) => ({ ...prev, working: true }));
+                      handleDisable(true);
+                    }}
+                    inline
+                    label="Yes"
+                    name="group1"
+                    type={"radio"}
+                  />
+                  <Form.Check
+                    inline
+                    label="No"
+                    name="group1"
+                    type={"radio"}
+                    onClick={() => {
+                      setForm((prev) => ({ ...prev, working: false }));
+                      handleDisable(false);
+                    }}
+                  />
+                </div>
+              </td>
+              <td>
+                <input
+                  value={form.remark}
+                  onChange={handleForm}
+                  name="remark"
+                  type="text"
+                  className="form-control"
+                />
+              </td>
+              <td>
+                <Mybutton
+                  name={"Submit"}
+                  backgroundColor={"#44ce42"}
+                  color={"#fff"}
+                  handleClick={handleSubmit}
+                />
+              </td>
+            </tr>
+          </tbody>
+        </Table>
+      </div> */}
 
       <hr />
       <div className="d-flex align-items-center justify-content-center">
@@ -392,9 +534,9 @@ function ProductionData() {
           />
         </div>
       </div>
-      <div className="my-3 ms-2">
+      <div className="my-3 mx-2">
         <li className="my-2 ms-2 text-dark">Filter By Date</li>
-        <div className="d-flex justify-content-start align-items-end gap-2">
+        <div className="d-flex justify-content-start align-items-end gap-2 flex-wrap">
           <div>
             <h6 className="text-secondary mb-2" style={{ fontSize: "13px" }}>
               From Date
@@ -441,7 +583,14 @@ function ProductionData() {
             }}
             name={"Yesturday"}
           /> */}
-          <Mybutton name={"Search"} handleClick={handleFilterByDates} />
+          <Mybutton
+            name={"Search"}
+            handleClick={() => {
+              if (filterDates.startDate.length && filterDates.endDate.length) {
+                getProductionData(filterDates.startDate, filterDates.endDate);
+              }
+            }}
+          />
           <Mybutton
             name={"Reset Filter"}
             handleClick={() => {
@@ -454,7 +603,7 @@ function ProductionData() {
           />
         </div>
       </div>
-      <Table className="mt-3" bordered>
+      <Table className="mt-3" bordered responsive>
         <thead className="table-secondary">
           <tr>
             <th rowSpan={2}>Production Id</th>

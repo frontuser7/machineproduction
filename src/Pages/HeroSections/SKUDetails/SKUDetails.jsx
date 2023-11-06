@@ -3,6 +3,7 @@ import Table from "react-bootstrap/Table";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import CustomLoader from "../../../Component/Loader/CustomLoader";
 
 function SKUDetails() {
   const BASE_URL = process.env.REACT_APP_BASE_URL;
@@ -14,11 +15,13 @@ function SKUDetails() {
   const navigate = useNavigate();
 
   const [skuData, setSKUData] = useState([]);
+  const [loader, setLoader] = useState(false);
 
   //url
   const getSKUDetails_url = BASE_URL + "api/getsku/";
 
   const getSKUDetails = async () => {
+    setLoader(true);
     let header = {
       Authorization: `Token ${localStorage.getItem("token")}`,
     };
@@ -28,6 +31,7 @@ function SKUDetails() {
       .then((res) => {
         if (res.data.status) {
           setSKUData(res.data?.data);
+          setLoader(false);
         }
       })
       .catch((err) => {
@@ -43,27 +47,33 @@ function SKUDetails() {
     getSKUDetails();
   }, []);
   return (
-    <Table className="mt-3" bordered responsive>
-      <thead className="table-secondary">
-        <tr>
-          <th>SKU ID</th>
-          <th>Product Name</th>
-          <th>Weight</th>
-        </tr>
-      </thead>
-      <tbody>
-        {skuData &&
-          skuData.map((item) => {
-            return (
-              <tr key={item.skuID + item.product_name}>
-                <td>{item.skuID}</td>
-                <td>{item.product_name}</td>
-                <td>{item.weight}</td>
-              </tr>
-            );
-          })}
-      </tbody>
-    </Table>
+    <>
+      {loader ? (
+        <CustomLoader />
+      ) : (
+        <Table className="mt-3" bordered responsive>
+          <thead className="table-secondary">
+            <tr>
+              <th>SKU ID</th>
+              <th>Product Name</th>
+              <th>Weight</th>
+            </tr>
+          </thead>
+          <tbody>
+            {skuData &&
+              skuData.map((item) => {
+                return (
+                  <tr key={item.skuID + item.product_name}>
+                    <td>{item.skuID}</td>
+                    <td>{item.product_name}</td>
+                    <td>{item.weight}</td>
+                  </tr>
+                );
+              })}
+          </tbody>
+        </Table>
+      )}
+    </>
   );
 }
 

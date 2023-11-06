@@ -3,6 +3,7 @@ import Table from "react-bootstrap/Table";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import CustomLoader from "../../../Component/Loader/CustomLoader";
 
 function MachineDetails() {
   const BASE_URL = process.env.REACT_APP_BASE_URL;
@@ -14,11 +15,13 @@ function MachineDetails() {
   const navigate = useNavigate();
 
   const [machineData, setMachineData] = useState([]);
+  const [loader, setLoader] = useState(false);
 
   //url
   const getMachineDetails_url = BASE_URL + "api/getmachine/";
 
   const getMachineDetails = async () => {
+    setLoader(true);
     let header = {
       Authorization: `Token ${localStorage.getItem("token")}`,
     };
@@ -28,6 +31,7 @@ function MachineDetails() {
       .then((res) => {
         if (res.data.status) {
           setMachineData(res.data?.data);
+          setLoader(false);
         }
       })
       .catch((err) => {
@@ -45,38 +49,42 @@ function MachineDetails() {
 
   return (
     <>
-      <Table className="mt-3" bordered responsive>
-        <thead className="table-secondary">
-          <tr>
-            <th rowSpan={2}>Machine ID</th>
-            <th rowSpan={2}>Machine Name</th>
-            <th className="text-center" colSpan={3}>
-              Plant
-            </th>
-            <th rowSpan={2}>SAP Code</th>
-          </tr>
-          <tr>
-            <th>Plant ID</th>
-            <th>Name</th>
-            <th>Location</th>
-          </tr>
-        </thead>
-        <tbody>
-          {machineData &&
-            machineData.map((item) => {
-              return (
-                <tr key={item.machineID + item.production_Date}>
-                  <td>{item.machineID}</td>
-                  <td>{item.machine_name}</td>
-                  <td>{item?.plant?.plantID}</td>
-                  <td>{item?.plant?.name}</td>
-                  <td>{item?.plant?.location}</td>
-                  <td>{item.sap_code}</td>
-                </tr>
-              );
-            })}
-        </tbody>
-      </Table>
+      {loader ? (
+        <CustomLoader />
+      ) : (
+        <Table className="mt-3" bordered responsive>
+          <thead className="table-secondary">
+            <tr>
+              <th rowSpan={2}>Machine ID</th>
+              <th rowSpan={2}>Machine Name</th>
+              <th className="text-center" colSpan={3}>
+                Plant
+              </th>
+              <th rowSpan={2}>SAP Code</th>
+            </tr>
+            <tr>
+              <th>Plant ID</th>
+              <th>Name</th>
+              <th>Location</th>
+            </tr>
+          </thead>
+          <tbody>
+            {machineData &&
+              machineData.map((item) => {
+                return (
+                  <tr key={item.machineID + item.production_Date}>
+                    <td>{item.machineID}</td>
+                    <td>{item.machine_name}</td>
+                    <td>{item?.plant?.plantID}</td>
+                    <td>{item?.plant?.name}</td>
+                    <td>{item?.plant?.location}</td>
+                    <td>{item.sap_code}</td>
+                  </tr>
+                );
+              })}
+          </tbody>
+        </Table>
+      )}
     </>
   );
 }
