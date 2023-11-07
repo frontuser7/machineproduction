@@ -32,7 +32,7 @@ function ProductionData() {
     productionKg: "",
     batchNo: "",
     working: true,
-    remark: "",
+    remark: "Working",
   });
   const [state, setState] = useState([]);
   const [productionList, setProductionList] = useState([]);
@@ -160,7 +160,8 @@ function ProductionData() {
       !form.productionDate.length ||
       !form.batchNo.length ||
       !form.machine.id ||
-      !form.sku.id
+      !form.sku.id ||
+      !form.remark.length
     ) {
       return notify("All fields are mandatory", "info");
     }
@@ -305,7 +306,11 @@ function ProductionData() {
                 <InputGroup.Radio
                   defaultChecked
                   onClick={() => {
-                    setForm((prev) => ({ ...prev, working: true }));
+                    setForm((prev) => ({
+                      ...prev,
+                      working: true,
+                      remark: "Working",
+                    }));
                     handleDisable(true);
                   }}
                   name="workingStatus"
@@ -317,7 +322,11 @@ function ProductionData() {
               <InputGroup>
                 <InputGroup.Radio
                   onClick={() => {
-                    setForm((prev) => ({ ...prev, working: false }));
+                    setForm((prev) => ({
+                      ...prev,
+                      working: false,
+                      remark: "",
+                    }));
                     handleDisable(false);
                   }}
                   name="workingStatus"
