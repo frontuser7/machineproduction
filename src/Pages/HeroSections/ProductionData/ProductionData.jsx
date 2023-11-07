@@ -195,9 +195,10 @@ function ProductionData() {
             productionDate: "",
             productionKg: "",
             batchNo: "",
-            working: false,
-            remark: "",
+            working: true,
+            remark: "Working",
           });
+          setIsDisable(false);
           setSkuData([]);
           getProductionData();
         }
@@ -304,7 +305,7 @@ function ProductionData() {
             <div className="col-6 px-1">
               <InputGroup>
                 <InputGroup.Radio
-                  defaultChecked
+                  checked={form.working ? true : false}
                   onClick={() => {
                     setForm((prev) => ({
                       ...prev,
@@ -321,6 +322,7 @@ function ProductionData() {
             <div className="col-6 px-1">
               <InputGroup>
                 <InputGroup.Radio
+                  checked={!form.working ? true : false}
                   onClick={() => {
                     setForm((prev) => ({
                       ...prev,
